@@ -48,9 +48,9 @@ func TestGetUserInfo(t *testing.T) {
 func TestStoreFile(t *testing.T) {
 	u := "test@test.com"
 	m := "Test message"
+	Configure()
 	StoreFile(u, m)
 
-	Configure()
 	path := fmt.Sprintf("%s/%s.txt", MSGDIR, u)
 
 	_, err := os.Stat(path)
@@ -65,6 +65,6 @@ func TestStoreFile(t *testing.T) {
 			t.Errorf("Expected %s but got %s", m, b)
 		}
 	}
-	
+
 	os.Remove(path)
 }
