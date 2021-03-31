@@ -7,6 +7,7 @@
 #### Config
 
 Configuration defaults can be found in `config.json` and altered as desired
+
 Default port is 8080, default storage directory is `./messages`
 
 ### Accessing API
