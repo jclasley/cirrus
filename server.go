@@ -92,7 +92,7 @@ func GetUserInfo(r *http.Request) (string, error) {
 // retrieve allowed usernames from reqres route, returns bool of whether or not the given username is in the allowed set
 
 func Authenticate(u string) bool {
-	res, err := http.Get("https://reqre.in/api/users")
+	res, err := http.Get("https://reqres.in/api/users")
 	if err != nil {
 		fmt.Printf("Error in Authenticate: %s", err)
 		return false

@@ -9,15 +9,19 @@ import (
 
 
 func TestAuthenticate(t *testing.T) {
-	u1 := "george.bluth@reqres.in"
-	u2 := "test@test.com"
-	truthy := Authenticate(u1) // should be true
-	falsy := Authenticate(u2) // should be false
-
-	if !truthy {
-		t.Errorf("Expected %s to be in authenticated users", u1)
-	} else if falsy {
-		t.Errorf("Expected %s to NOT be in authenticated users", u2)
+	tests := []struct{
+		user string
+		want bool
+	}{
+		{"george.bluth@reqres.in", true},
+		{"test@test.com", false},
+	}
+	
+	for _, tt := range tests {
+		got := Authenticate(tt.user)
+		if got != tt.want {
+			t.Errorf("%s: Expected %v for %s, got %v", t.Name(), tt.want, tt.user, got)
+		}
 	}
 }
 
