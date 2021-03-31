@@ -43,14 +43,16 @@ func TestGetUserInfo(t *testing.T) {
 	} else if user != u {
 		t.Errorf("Expected %s but got %s", u, user)
 	}
-	
 }
 
 func TestStoreFile(t *testing.T) {
 	u := "test@test.com"
 	m := "Test message"
-	path := fmt.Sprintf("./messages/%s.txt", u)
 	StoreFile(u, m)
+
+	Configure()
+	path := fmt.Sprintf("%s/%s.txt", MSGDIR, u)
+
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		t.Errorf("Expected file %s to exist, instead found nothing", path)
@@ -63,5 +65,6 @@ func TestStoreFile(t *testing.T) {
 			t.Errorf("Expected %s but got %s", m, b)
 		}
 	}
+	
 	os.Remove(path)
 }
