@@ -2,6 +2,7 @@ build:
 	go build -o .
 
 test:
-	go test -v
+	go test server -v
+	go test controller -v
 
 all: test build

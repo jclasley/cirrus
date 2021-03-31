@@ -2,11 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"os"
 	"net/http"
+	"controller"
 )
 
 var PORT string
@@ -32,35 +31,26 @@ func Configure() {
 	MSGDIR = conf.MSGDIR
 }
 
-
-type AuthMessage struct {
-	Message string `json:"message"`
-}
-
 func SaveHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "POST route only", http.StatusMethodNotAllowed)
 		return
 	}
-	user, err := GetUserInfo(r)
+	user, err := controller.GetUserInfo(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	if !Authenticate(user) {
+	if !controller.Authenticate(user) {
 		http.Error(w, "Unauthorized user", http.StatusUnauthorized)
 		return
 	}
-	var m AuthMessage
-	b, err := io.ReadAll(r.Body)
-	err = json.Unmarshal(b, &m)
+	msg, err := controller.ParseMessage(r)
 	if err != nil {
-		http.Error(w, "Improperly formatted JSON", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-  if err = StoreFile(user, m.Message); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	StoreFile(user, msg)
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(w, "Message received")
 }
@@ -76,42 +66,8 @@ func StoreFile(u, m string) error {
 	return nil
 }
 
-// retrieves username and throws errors based on pre-defined specs
-func GetUserInfo(r *http.Request) (string, error) {
-	user, pass, ok := r.BasicAuth()
-	if !ok {
-		return "", errors.New("Basic auth not provided")
-	}
-	if pass == "" {
-		return "", errors.New("Invalid password")
-	}
-	return user, nil
-}
-
-
-// retrieve allowed usernames from reqres route, returns bool of whether or not the given username is in the allowed set
-
-func Authenticate(u string) bool {
-	res, err := http.Get("https://reqres.in/api/users")
-	if err != nil {
-		fmt.Printf("Error in Authenticate: %s", err)
-		return false
-	}
-	var r map[string][]map[string]interface{}
-	b, err := io.ReadAll(res.Body)
-	defer res.Body.Close()
-
-	json.Unmarshal(b, &r)
-	for _,v := range r["data"] {
-		if v["email"] == u {
-			return true
-		}
-	}
-	return false
-}
-
 func GetMsgHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := GetUserInfo(r)
+	user, err := controller.GetUserInfo(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
