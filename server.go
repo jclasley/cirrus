@@ -58,23 +58,25 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Improperly formatted JSON", http.StatusBadRequest)
 		return
 	}
-  StoreFile(user, m.Message)
+  if err = StoreFile(user, m.Message); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(w, "Message received")
 }
 
 // stores at messages subdir path
-func StoreFile(u, m string) {
+func StoreFile(u, m string) error {
 	path := fmt.Sprintf("%s/%s.txt", MSGDIR, u)
   f, err := os.Create(path)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("Error in storing file: %s", err)
 	}
 	f.WriteString(fmt.Sprintf("%s\n", m))
+	return nil
 }
 
 // retrieves username and throws errors based on pre-defined specs
-
 func GetUserInfo(r *http.Request) (string, error) {
 	user, pass, ok := r.BasicAuth()
 	if !ok {
@@ -90,9 +92,10 @@ func GetUserInfo(r *http.Request) (string, error) {
 // retrieve allowed usernames from reqres route, returns bool of whether or not the given username is in the allowed set
 
 func Authenticate(u string) bool {
-	res, err := http.Get("https://reqres.in/api/users")
+	res, err := http.Get("https://reqre.in/api/users")
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error in Authenticate: %s", err)
+		return false
 	}
 	var r map[string][]map[string]interface{}
 	b, err := io.ReadAll(res.Body)
